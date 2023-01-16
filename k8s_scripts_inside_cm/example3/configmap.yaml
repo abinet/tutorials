@@ -10,7 +10,7 @@ data:
     user5
   create-dir.sh: |
     #!/bin/bash
-    set -ex
+    #set -ex
     cat /scripts/users.ini | while read line
     do
        mkdir -pv /nfs/folder/$line
