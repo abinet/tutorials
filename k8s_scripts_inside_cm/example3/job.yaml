@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  generateName: create-users-dirs
+spec:
+  containers:
+  - name: create-users
+    image: centos
+    command: ["/scripts/create-dir.sh"]
+    volumeMounts:
+    - name: script
+      mountPath: "/scripts"
+  volumes:
+    - name: script
+      configMap:
+        name: create-users-dir
+        defaultMode: 0500
+        items:
+          - key: create-dir.sh
+            path: create-dir.sh
+          - key: users.ini
+            path: users.ini

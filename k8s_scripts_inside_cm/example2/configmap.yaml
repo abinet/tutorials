@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promote-model
+data:
+  promote_model.py: |
+    """
+    This file is used to demonstrate how to promote the latest version of a Model to "Production" stage so that it can be
+    served out of the Model Registry.
+    """
+    import os
+    import mlflow
+    from mlflow.tracking import MlflowClient
+
+    # Set the Remote Tracking Server Information
+    mlflow.set_tracking_uri("http://mlflow")
+
+    # Promote the latest Version of Staging to Production
+    client = MlflowClient()
+    model_name = os.getenv("MODEL_NAME")
+
+    # Get the latest version in Stage "Staging" and promote to "Production"
+    models = client.get_latest_versions(model_name, stages=["Staging"])
+    for model in models:
+        name = model.name
+        latest_version = int(model.version)
+        run_id = model.run_id
+        current_stage = model.current_stage
+        print(name, latest_version)
+        # Transition
+        client.transition_model_version_stage(
+            name=name,
+            version=latest_version,
+            stage="Production"
+        )

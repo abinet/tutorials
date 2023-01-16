@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: promote-model-a
+spec:
+  template:
+    spec:
+      containers:
+        - name: promote
+          image: wbassler/mlflow-utils:0.0.1
+          command:
+            - python
+          args:
+            - /mlflow/promote.py
+          env: 
+            - name: MODEL_NAME
+              value: model-a
+          volumeMounts:
+            - name: promote
+              mountPath: "/mlflow"
+      volumes:
+        - name: promote
+          configMap:
+            name: promote-model
+            defaultMode: 0500
+      restartPolicy: Never
