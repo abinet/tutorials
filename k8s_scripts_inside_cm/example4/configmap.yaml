@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-init-config
+data:
+  init.sh: |
+    #!/bin/sh
+    #set -x
+    while true; do 
+      vault status -format yaml > /vault/status.yaml
+      cat /vault/status.yaml
+      if (grep -q "initialized: false" /vault/status.yaml); then
+        echo "Initialising" 
+        vault operator init -address http://127.0.0.1:8200 -format yaml > /vault/keys.yaml
+        cat /vault/keys.yaml
+      fi  
+      echo "Initialised"
+      count=1       
+      while (grep -q "sealed: true" /vault/status.yaml); do
+        echo "Unsealing"
+        key=$(awk '/unseal_keys_hex:/{flag=1; next} /unseal_shares:/{flag=0} flag' /vault/keys.yaml | sed 's/- //' | sed "$count!d;q")
+        let count=count+1
+        echo "key: $key"
+        vault operator unseal -address http://127.0.0.1:8200 $key
+        vault status -format yaml -address http://127.0.0.1:8200 > /vault/status.yaml
+        cat /vault/status.yaml
+        sleep 10
+      done
+      echo "All right"
+      sleep 60
+    done
+
